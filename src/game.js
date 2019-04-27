@@ -3,8 +3,8 @@ export class Game{
   @bindable matrix;
   @bindable player;
   constructor() {
-    this.matrix = new Array(5).fill("-").map(() => new Array(4).fill("-"));
-    this.player = {x: 2, y: 0}
+    this.matrix = new Array(6).fill("-").map(() => new Array(4).fill("-"));
+    this.player = {x: 3, y: 0, shape: [{x:0,y:0},{x:0,y:1},{x:0,y:2},{x:0,y:3},{x:0,y:4}],color: "red"}
     this.size = {x: 25, y: 40}
     this.objects = [];
     this.objSize = 10;
@@ -48,19 +48,39 @@ handleKeyInput(event) {
   }
   canMoveDown(){
     if(this.player.y == this.size.y-1){
-      this.objects.push(JSON.parse(JSON.stringify(this.player)));
+      this.addObject();
       this.player.y = 0;
       return false;
     }
     for(let i = 0; i!= this.objects.length;i++){
-      if(this.objects[i].y-1 == this.player.y && this.objects[i].x == this.player.x){
-        this.objects.push(JSON.parse(JSON.stringify(this.player)));
+      this.player.shape.map((position,index) => {
+      if(this.objects[i].y-1 == this.player.y+position.y && this.objects[i].x == this.player.x+position.x){
+        this.addObject();
         this.player.y = 0;
         return false;
-            }
+        }
+      })
     }
     return true;
   }
+
+  addObject(){
+    this.player.shape.map((position,index) => {
+      this.objects.push(JSON.parse(JSON.stringify({x:this.player.x+position.x,y: this.player.y+position.y,color: this.player.color})))
+    });
+
+    this.player.color = this.getRandomColor();
+  }
+
+
+  getRandomColor() {
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
   attached(){
     window.addEventListener('keydown', (event) => this.handleKeyInput(event), false);
 
@@ -77,9 +97,13 @@ handleKeyInput(event) {
 
   draw(){
     this.clear();
-    this.content.fillStyle = "#FF0000";
-    this.content.fillRect(this.player.x*this.objSize, this.player.y*this.objSize, this.objSize, this.objSize);
+    this.content.fillStyle = this.player.color;
+    this.player.shape.map((position,index) => {
+      this.content.fillRect((this.player.x+position.x)*this.objSize, (this.player.y+position.y)*this.objSize, this.objSize, this.objSize);
+    });
     this.objects.map((obj,index) => {
+      this.content.fillStyle = obj.color;
+
       this.content.fillRect(obj.x*this.objSize, obj.y*this.objSize, this.objSize, this.objSize);
 
     });
